@@ -115,7 +115,7 @@ async function run() {
         })
 
         //ADMIN ALL USER  delete
-        app.delete('/users/:id',  verifyToken, verifyAdmin, async (req, res) => {
+        app.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await userCollection.deleteOne(query)
@@ -141,10 +141,17 @@ async function run() {
             res.send(result)
         })
 
-        app.post('/menu',  verifyToken, verifyAdmin, async(req, res) =>{
+        app.post('/menu', verifyToken, verifyAdmin, async (req, res) => {
             const item = req.body;
             const result = await menuCollection.insertOne(item)
             res.send(result)
+        })
+
+        app.delete('/menu/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await menuCollection.deleteOne(query);
+            res.send(result);
         })
 
         app.get('/reviews', async (req, res) => {
