@@ -226,28 +226,40 @@ async function run() {
             })
         })
 
-        app.post('/payments', async (req, res) =>{
-            const payment = req.body;
-            const paymentResult = await paymentCollection.insertOne(payment);
+        /* payment history */
+        app.get('/payments/:email', verifyToken, async (req, res) => {
+            const query = { email: req.params.email }
+            if (req.params.email !== req.decoded.email){
+                return res.status(403).send({message: 'forbidden access'})
+            }
+        const result = await paymentCollection.find(query).toArray();
+        res.send(result);
+    })
 
-            // carefully delete each item the cart
-            console.log('payment info', payment);
-            const query = {_id: {
+    app.post('/payments', async (req, res) => {
+        const payment = req.body;
+        const paymentResult = await paymentCollection.insertOne(payment);
+
+        // carefully delete each item the cart
+        console.log('payment info', payment);
+        const query = {
+            _id: {
                 $in: payment.cartIds.map(id => new ObjectId(id))
-            }};
+            }
+        };
 
-            const deleteResult = await cartCollection.deleteMany(query);
-            res.send({paymentResult, deleteResult})
-        })
+        const deleteResult = await cartCollection.deleteMany(query);
+        res.send({ paymentResult, deleteResult })
+    })
 
 
-        // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } finally {
-        // Ensures that the client will close when you finish/error
-        // await client.close();
-    }
+    // Send a ping to confirm a successful connection
+    await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+} finally {
+    // Ensures that the client will close when you finish/error
+    // await client.close();
+}
 }
 run().catch(console.dir);
 
